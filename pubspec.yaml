@@ -47,6 +47,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # path_provider_foundation >=2.5 pulls objective_c whose native build hook
 # fails when the user path contains a space (e.g. "Naufal Alif").
@@ -66,6 +67,8 @@ flutter:
 
   assets:
     - assets/images/
+    # Font dibundel: tidak perlu download saat app dibuka (cepat & bisa offline).
+    - assets/google_fonts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -97,3 +100,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Ikon app (jalankan ulang: dart run flutter_launcher_icons)
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: "ic_launcher"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    background_color: "#F1FDEE"
+    theme_color: "#154212"

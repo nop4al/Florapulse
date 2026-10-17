@@ -13,6 +13,8 @@ import 'mqtt_client_factory.dart';
 /// `{"id":"FP-Desa-01","name":"Kotak Kebun Utama","online":true,
 ///   "valves":6,"battery":98,"rssi":-58,"pump":false}`
 /// `battery` boleh `null` kalau alat tidak punya sensor baterai.
+/// Field opsional (kirim kalau sensornya ada): `battery_v` (volt aki),
+/// `tank` (isi tangki %), `tank_l` & `tank_cap_l` (liter), `flow` (L/menit).
 class FloraDevice {
   FloraDevice({
     required this.id,
@@ -22,6 +24,11 @@ class FloraDevice {
     this.battery,
     this.rssi,
     this.pumpOn = false,
+    this.batteryVolt,
+    this.tankPercent,
+    this.tankLiters,
+    this.tankCapacity,
+    this.flow,
   });
 
   final String id;
@@ -31,6 +38,11 @@ class FloraDevice {
   final int? rssi;
   final bool pumpOn;
   final DateTime lastSeen;
+  final double? batteryVolt;
+  final int? tankPercent;
+  final double? tankLiters;
+  final double? tankCapacity;
+  final double? flow;
 
   static FloraDevice? fromJson(Map<String, dynamic> j) {
     final id = j['id'];
@@ -43,6 +55,11 @@ class FloraDevice {
       rssi: (j['rssi'] as num?)?.toInt(),
       pumpOn: j['pump'] == true,
       lastSeen: DateTime.now(),
+      batteryVolt: (j['battery_v'] as num?)?.toDouble(),
+      tankPercent: (j['tank'] as num?)?.toInt(),
+      tankLiters: (j['tank_l'] as num?)?.toDouble(),
+      tankCapacity: (j['tank_cap_l'] as num?)?.toDouble(),
+      flow: (j['flow'] as num?)?.toDouble(),
     );
   }
 
@@ -59,6 +76,16 @@ class FloraDevice {
                 ? 'Sedang'
                 : 'Lemah';
     return 'Sinyal WiFi $kualitas ($r dBm)';
+  }
+
+  String get batteryCondition {
+    final b = battery;
+    if (b == null) return '-';
+    return b >= 60
+        ? 'Sehat'
+        : b >= 30
+            ? 'Cukup'
+            : 'Lemah';
   }
 
   String get batteryLabel {
@@ -82,6 +109,21 @@ class MqttLogEntry {
   final bool sent;
   final String topic;
   final String payload;
+}
+
+enum NotifKind { success, info, warning, danger }
+
+/// Notifikasi di dalam app. Dibuat dari kejadian asli: status alat,
+/// perubahan kran, baterai/tangki rendah, dan koneksi server.
+class AppNotification {
+  AppNotification({required this.kind, required this.title, required this.body})
+      : time = DateTime.now();
+
+  final NotifKind kind;
+  final String title;
+  final String body;
+  final DateTime time;
+  bool read = false;
 }
 
 enum ScanState { idle, connecting, scanning, done, serverError }
@@ -113,6 +155,65 @@ class MqttService extends ChangeNotifier {
   final Map<String, FloraDevice> _devices = {};
   String? selectedId;
 
+  /// Notifikasi terbaru di depan. Hanya tersimpan selama app terbuka.
+  final List<AppNotification> notifications = [];
+  static const int _maxNotif = 50;
+  final Set<String> _knownIds = {};
+  final Set<String> _offlineIds = {};
+  bool _hadDisconnect = false;
+
+  int get unreadCount => notifications.where((n) => !n.read).length;
+
+  void markAllRead() {
+    for (final n in notifications) {
+      n.read = true;
+    }
+    notifyListeners();
+  }
+
+  void clearNotifications() {
+    notifications.clear();
+    notifyListeners();
+  }
+
+  void _notify(NotifKind kind, String title, String body) {
+    notifications.insert(0, AppNotification(kind: kind, title: title, body: body));
+    if (notifications.length > _maxNotif) notifications.removeLast();
+  }
+
+  void _markOffline(FloraDevice d, String body) {
+    if (_offlineIds.add(d.id)) _notify(NotifKind.danger, '${d.name} offline', body);
+  }
+
+  /// Bandingkan status baru dengan status sebelumnya, catat yang penting.
+  void _notifyChanges(FloraDevice? prev, FloraDevice d) {
+    if (_offlineIds.remove(d.id)) {
+      _notify(NotifKind.success, '${d.name} online kembali', '${d.id} mengirim status lagi.');
+    } else if (_knownIds.add(d.id)) {
+      _notify(NotifKind.success, 'Alat terhubung', '${d.name} (${d.id}) ditemukan dan mengirim status.');
+    }
+    if (prev != null && prev.pumpOn != d.pumpOn) {
+      _notify(
+        NotifKind.info,
+        d.pumpOn ? 'Kran dibuka' : 'Kran ditutup',
+        d.pumpOn ? '${d.name} melapor air mulai mengalir.' : '${d.name} melapor kran sudah tertutup.',
+      );
+    }
+    final b = d.battery;
+    final pb = prev?.battery;
+    if (b != null && b < 30 && (pb == null || pb >= 30)) {
+      _notify(NotifKind.warning, 'Baterai aki lemah', '${d.name}: sisa $b%. Segera isi atau ganti aki.');
+    }
+    final t = d.tankPercent;
+    final pt = prev?.tankPercent;
+    if (t != null && t < 30 && (pt == null || pt >= 30)) {
+      _notify(NotifKind.warning, 'Air tangki hampir habis', '${d.name}: tangki tinggal $t%.');
+    }
+  }
+
+  /// Waktu terakhir alat melapor pompa menyala (dilihat app, bukan tebakan).
+  DateTime? lastWateredAt;
+
   /// Riwayat pesan terbaru (paling baru di depan).
   final List<MqttLogEntry> log = [];
   static const int _maxLog = 30;
@@ -138,6 +239,10 @@ class MqttService extends ChangeNotifier {
 
     try {
       isConnected = await _connectClient();
+      if (isConnected && _hadDisconnect) {
+        _hadDisconnect = false;
+        _notify(NotifKind.success, 'Terhubung kembali ke server', 'Status alat kembali diterima.');
+      }
     } catch (e) {
       debugPrint('Gagal terhubung: $e');
       isConnected = false;
@@ -184,11 +289,20 @@ class MqttService extends ChangeNotifier {
   /// Buang alat yang sudah tidak kirim status (mati/putus tanpa pamit).
   void _pruneStale() {
     final before = _devices.length;
-    _devices.removeWhere((_, d) => !d.isFresh);
+    _devices.removeWhere((_, d) {
+      if (d.isFresh) return false;
+      _markOffline(d, 'Tidak ada kabar dari ${d.id} selama ${deviceTtl.inSeconds} detik.');
+      return true;
+    });
     if (_devices.length != before) notifyListeners();
   }
 
   void _onDisconnected() {
+    if (isConnected) {
+      _hadDisconnect = true;
+      _notify(NotifKind.danger, 'Koneksi server terputus',
+          'App tidak bisa menerima status alat. Cek internet HP.');
+    }
     isConnected = false;
     notifyListeners();
   }
@@ -208,11 +322,15 @@ class MqttService extends ChangeNotifier {
         if (data is! Map<String, dynamic>) continue;
         final id = data['id'];
         if (data['online'] == false && id is String) {
-          _devices.remove(id);
+          final gone = _devices.remove(id);
+          if (gone != null) _markOffline(gone, 'Alat mati mendadak atau putus dari internet.');
           continue;
         }
         final device = FloraDevice.fromJson(data);
         if (device == null) continue;
+        final prev = _devices[device.id];
+        _notifyChanges(prev, device);
+        if (device.pumpOn && !(prev?.pumpOn ?? false)) lastWateredAt = DateTime.now();
         _devices[device.id] = device;
         if (device.id == selectedId) isPompaOn = device.pumpOn;
         changed = true;

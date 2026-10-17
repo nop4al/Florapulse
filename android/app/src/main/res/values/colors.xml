@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hijau tua FloraPulse (AppColors.primary) -->
+    <color name="splash_background">#154212</color>
+    <!-- Lingkaran di belakang logo saat bootup Android 12+ -->
+    <color name="splash_icon_background">#F1FDEE</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
+</resources>

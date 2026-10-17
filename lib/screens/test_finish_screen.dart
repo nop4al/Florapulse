@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -91,8 +90,6 @@ class _TestFinishScreenState extends State<TestFinishScreen> {
         const SizedBox(height: 16),
         _summaryCard(),
         const SizedBox(height: 16),
-        const _GardenPreview(),
-        const SizedBox(height: 20),
         PrimaryButton(
           label: 'Masuk ke Beranda Kebun',
           fontSize: 16,
@@ -444,69 +441,6 @@ class _CelebrationCard extends StatelessWidget {
   }
 }
 
-class _GardenPreview extends StatelessWidget {
-  const _GardenPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 112,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.container,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: AppShadows.soft,
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset('assets/images/garden_preview.jpg', fit: BoxFit.cover),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [Color(0xCC154212), Color(0x4D154212), Color(0x00154212)],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                children: [
-                  const Icon(Icons.eco_outlined, color: Colors.white, size: 16),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text('Kebun Belakang Rumah',
-                        style: AppText.jakarta(16,
-                            color: Colors.white, height: 22, spacing: -0.08)),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        color: const Color(0x33FFFFFF),
-                        child: Text('34°C • Kelembapan 68%',
-                            style: AppText.jakarta(11,
-                                weight: FontWeight.w700, color: Colors.white, spacing: 0.44)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Panel data mentah yang dikirim app (KIRIM) dan diterima dari alat (TERIMA).
 class _DataLog extends StatelessWidget {
   const _DataLog({required this.entries});
 

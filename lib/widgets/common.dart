@@ -1,10 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Header blur "Panduan Setup" dengan tombol kembali.
+/// Header "Panduan Setup" dengan tombol kembali.
+/// Tanpa efek blur: blur latar sangat berat di HP kelas bawah.
 class SetupHeader extends StatelessWidget implements PreferredSizeWidget {
   const SetupHeader({super.key, this.title = 'Panduan Setup'});
 
@@ -16,40 +15,43 @@ class SetupHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          height: 64 + top,
-          padding: EdgeInsets.only(top: top, left: 12, right: 20),
-          decoration: const BoxDecoration(
-            color: Color(0xCCF1FDEE),
-            boxShadow: [
-              BoxShadow(color: Color(0x0A000000), offset: Offset(0, 1), blurRadius: 8),
-            ],
+    return Container(
+      height: 64 + top,
+      padding: EdgeInsets.only(top: top, left: 12, right: 20),
+      decoration: const BoxDecoration(
+        color: Color(0xF5F1FDEE),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x0A000000),
+            offset: Offset(0, 1),
+            blurRadius: 8,
           ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 44,
-                height: 44,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(Icons.arrow_back, size: 22, color: AppColors.onSurface),
-                  tooltip: 'Kembali',
-                ),
+        ],
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(
+                Icons.arrow_back,
+                size: 22,
+                color: AppColors.onSurface,
               ),
-              Expanded(
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: AppText.jakarta(16, height: 22, spacing: -0.08),
-                ),
-              ),
-              const SizedBox(width: 36),
-            ],
+              tooltip: 'Kembali',
+            ),
           ),
-        ),
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppText.jakarta(16, height: 22, spacing: -0.08),
+            ),
+          ),
+          const SizedBox(width: 36),
+        ],
       ),
     );
   }
@@ -57,7 +59,12 @@ class SetupHeader extends StatelessWidget implements PreferredSizeWidget {
 
 /// Bar progres 3 langkah + label.
 class StepProgress extends StatelessWidget {
-  const StepProgress({super.key, required this.step, required this.label, this.maxBarWidth});
+  const StepProgress({
+    super.key,
+    required this.step,
+    required this.label,
+    this.maxBarWidth,
+  });
 
   final int step;
   final String label;
@@ -97,8 +104,13 @@ class StepProgress extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           label.toUpperCase(),
-          style: AppText.inter(11,
-              weight: FontWeight.w600, color: AppColors.primarySoft, spacing: 0.55, height: 22),
+          style: AppText.inter(
+            11,
+            weight: FontWeight.w600,
+            color: AppColors.primarySoft,
+            spacing: 0.55,
+            height: 22,
+          ),
         ),
       ],
     );
@@ -149,9 +161,15 @@ class PrimaryButton extends StatelessWidget {
                   Icon(leading, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                 ],
-                Text(label,
-                    style: AppText.jakarta(fontSize,
-                        color: Colors.white, height: 20, spacing: fontSize * 0.01)),
+                Text(
+                  label,
+                  style: AppText.jakarta(
+                    fontSize,
+                    color: Colors.white,
+                    height: 20,
+                    spacing: fontSize * 0.01,
+                  ),
+                ),
                 if (trailing != null) ...[
                   const SizedBox(width: 8),
                   Icon(trailing, color: Colors.white, size: 16),
@@ -223,22 +241,43 @@ class IconCircle extends StatelessWidget {
   }
 }
 
-/// Lingkaran kabur dekoratif.
+/// Lingkaran cahaya lembut dekoratif.
+/// Pakai gradien radial (murah), bukan filter blur (mahal di HP lemah).
 class GlowBlob extends StatelessWidget {
-  const GlowBlob({super.key, required this.size, required this.color, this.blur = 20});
+  const GlowBlob({
+    super.key,
+    required this.size,
+    required this.color,
+    this.blur = 20,
+  });
 
   final double size;
   final Color color;
+
+  /// Seberapa lebar tepi memudar, mirip radius blur.
   final double blur;
 
   @override
   Widget build(BuildContext context) {
-    return ImageFiltered(
-      imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    final full = size + blur * 2;
+    final solid = (size / 2 - blur) / (full / 2);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: OverflowBox(
+        maxWidth: full,
+        maxHeight: full,
+        child: Container(
+          width: full,
+          height: full,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [color, color, color.withValues(alpha: 0)],
+              stops: [0, solid.clamp(0.0, 0.9), 1],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -266,7 +305,10 @@ class TipBox extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: padding,
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(radius)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(radius),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,7 +339,11 @@ class SetupScaffold extends StatelessWidget {
       appBar: const SetupHeader(),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
-            20, 64 + MediaQuery.paddingOf(context).top, 20, 40 + MediaQuery.paddingOf(context).bottom),
+          20,
+          64 + MediaQuery.paddingOf(context).top,
+          20,
+          40 + MediaQuery.paddingOf(context).bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: children,
@@ -310,9 +356,66 @@ class SetupScaffold extends StatelessWidget {
 void showSnack(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      content: Text(message),
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: AppColors.primary,
-    ));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primary,
+      ),
+    );
+}
+
+/// Logo FloraPulse (tetes air + daun + detak).
+/// [onDark] = true untuk latar gelap: logo ditaruh di lingkaran terang
+/// supaya hijaunya tetap kelihatan.
+class FloraLogo extends StatelessWidget {
+  const FloraLogo({
+    super.key,
+    this.size = 40,
+    this.onDark = false,
+    this.shadow = false,
+  });
+
+  static const asset = 'assets/images/logo.png';
+
+  final double size;
+  final bool onDark;
+  final bool shadow;
+
+  @override
+  Widget build(BuildContext context) {
+    // Decode logo seukuran tampilnya saja, bukan 1024px penuh: hemat memori.
+    final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
+    final image = Image.asset(
+      asset,
+      width: size,
+      height: size,
+      cacheWidth: px,
+      filterQuality: FilterQuality.medium,
+    );
+    if (!onDark && !shadow) return image;
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * 0.17),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.background,
+        boxShadow: shadow
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: size * 0.26,
+                  offset: Offset(0, size * 0.09),
+                ),
+              ]
+            : null,
+      ),
+      child: Image.asset(
+        asset,
+        cacheWidth: px,
+        filterQuality: FilterQuality.medium,
+      ),
+    );
+  }
 }

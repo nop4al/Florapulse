@@ -205,7 +205,8 @@ class _RadarCardState extends State<_RadarCard> with SingleTickerProviderStateMi
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-                  _pulse(icon),
+                  // Animasi diisolasi supaya kartu lain tidak ikut dicat ulang.
+                  RepaintBoundary(child: _pulse(icon)),
                   const SizedBox(height: 20),
                   Text(title,
                       textAlign: TextAlign.center,
@@ -213,7 +214,7 @@ class _RadarCardState extends State<_RadarCard> with SingleTickerProviderStateMi
                   const SizedBox(height: 4),
                   Text(desc, textAlign: TextAlign.center, style: AppText.inter(14, height: 22)),
                   const SizedBox(height: 16),
-                  _busy ? _scanPill() : _retryPill(),
+                  RepaintBoundary(child: _busy ? _scanPill() : _retryPill()),
                 ],
               ),
             ),

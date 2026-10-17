@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -19,7 +17,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _TopBadges(),
+            const _BrandHeader(),
             const SizedBox(height: 24),
             const _HeroCard(),
             const SizedBox(height: 24),
@@ -42,14 +40,17 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(
+                      TextSpan(
+                        children: [
+                          TextSpan(
                             text: 'Tips Petani:',
-                            style: AppText.inter(12, weight: FontWeight.w600)),
-                        const TextSpan(
-                            text:
-                                ' Lampu indikator hijau pada mesin akan berkedip pelan saat siap dihubungkan.'),
-                      ]),
+                            style: AppText.inter(12, weight: FontWeight.w600),
+                          ),
+                          const TextSpan(
+                            text: ' Lampu indikator hijau pada mesin akan berkedip pelan saat siap dihubungkan.',
+                          ),
+                        ],
+                      ),
                       style: AppText.inter(12, height: 16.5, spacing: 0.12),
                     ),
                   ),
@@ -67,11 +68,20 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: () => showSnack(context, 'Menghubungi penyuluh lewat WhatsApp...'),
-              icon: const Icon(Icons.support_agent, size: 16, color: AppColors.secondary),
+              onPressed: () =>
+                  showSnack(context, 'Menghubungi penyuluh lewat WhatsApp...'),
+              icon: const Icon(
+                Icons.support_agent,
+                size: 16,
+                color: AppColors.secondary,
+              ),
               label: Text(
                 'Butuh Bantuan Penyuluh Kebun? Hubungi WhatsApp',
-                style: AppText.jakarta(12, color: AppColors.secondary, spacing: 0.24),
+                style: AppText.jakarta(
+                  12,
+                  color: AppColors.secondary,
+                  spacing: 0.24,
+                ),
               ),
             ),
           ],
@@ -81,45 +91,39 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _TopBadges extends StatelessWidget {
-  const _TopBadges();
+/// Logo + nama app di atas layar sambutan.
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader();
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.containerHighest,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: AppShadows.soft,
-          ),
-          child: Row(children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration:
-                  const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+        const FloraLogo(size: 44),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'FloraPulse',
+              style: AppText.jakarta(
+                20,
+                weight: FontWeight.w700,
+                color: AppColors.primary,
+                height: 24,
+                spacing: -0.4,
+              ),
             ),
-            const SizedBox(width: 8),
-            Text('SIAP DIPASANG',
-                style: AppText.jakarta(12, color: AppColors.primary, spacing: 0.3, height: 16)),
-          ]),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.containerHigh,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Row(children: [
-            const Icon(Icons.verified_outlined, size: 16, color: AppColors.secondary),
-            const SizedBox(width: 6),
-            Text('Versi Tani 2.4',
-                style: AppText.jakarta(11, color: AppColors.secondary, spacing: 0.44)),
-          ]),
+            Text(
+              'Kebun Pintar, Siram Otomatis',
+              style: AppText.inter(
+                11,
+                color: AppColors.secondary,
+                height: 14,
+                spacing: 0.2,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -146,13 +150,21 @@ class _HeroCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset('assets/images/hero_welcome.jpg', fit: BoxFit.cover),
+                Image.asset(
+                  'assets/images/hero_welcome.jpg',
+                  fit: BoxFit.cover,
+                  cacheWidth: 1024,
+                ),
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [Color(0xCC293329), Color(0x33293329), Color(0x00293329)],
+                      colors: [
+                        Color(0xCC293329),
+                        Color(0x33293329),
+                        Color(0x00293329),
+                      ],
                     ),
                   ),
                 ),
@@ -163,17 +175,23 @@ class _HeroCard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: const [
-                      _GlassPill(
-                        icon: Icons.eco,
-                        text: 'Hemat Air hingga 40%',
-                        color: AppColors.accentLight,
-                        fontSize: 12,
+                      // Flexible: di layar sempit pill mengecil, tidak tumpah keluar kartu.
+                      Flexible(
+                        child: _GlassPill(
+                          icon: Icons.eco,
+                          text: 'Hemat Air hingga 40%',
+                          color: AppColors.accentLight,
+                          fontSize: 12,
+                        ),
                       ),
-                      _GlassPill(
-                        icon: Icons.wifi_tethering,
-                        text: 'Otomatis Terhubung',
-                        color: AppColors.background,
-                        fontSize: 11,
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: _GlassPill(
+                          icon: Icons.wifi_tethering,
+                          text: 'Otomatis Terhubung',
+                          color: AppColors.background,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -186,9 +204,15 @@ class _HeroCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Selamat Datang di FloraPulse Kebun Pintar!',
-                    style: AppText.jakarta(26,
-                        weight: FontWeight.w700, height: 34, spacing: -0.65)),
+                Text(
+                  'Selamat Datang di FloraPulse Kebun Pintar!',
+                  style: AppText.jakarta(
+                    26,
+                    weight: FontWeight.w700,
+                    height: 34,
+                    spacing: -0.65,
+                  ),
+                ),
                 const SizedBox(height: 3),
                 Text(
                   'Mari siapkan alat penyiram otomatis Anda dalam 3 langkah mudah. '
@@ -219,19 +243,27 @@ class _GlassPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          color: const Color(0x99293329),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 6),
-            Text(text, style: AppText.jakarta(fontSize, color: color, spacing: 0.3)),
-          ]),
-        ),
+    // Latar gelap pekat, tanpa blur (blur berat di HP kelas bawah).
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xB3293329),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.jakarta(fontSize, color: color, spacing: 0.3),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -273,18 +305,33 @@ class _ChecklistSection extends StatelessWidget {
               const Icon(Icons.checklist, size: 20, color: AppColors.onSurface),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Yang Perlu Disiapkan',
-                    style: AppText.jakarta(18, weight: FontWeight.w600, spacing: -0.18)),
+                child: Text(
+                  'Yang Perlu Disiapkan',
+                  style: AppText.jakarta(
+                    18,
+                    weight: FontWeight.w600,
+                    spacing: -0.18,
+                  ),
+                ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.containerHigh,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text('Langkah 1 dari 3',
-                    style: AppText.jakarta(12,
-                        color: AppColors.onSurfaceVariant, spacing: 0.24, height: 16)),
+                child: Text(
+                  'Langkah 1 dari 3',
+                  style: AppText.jakarta(
+                    12,
+                    color: AppColors.onSurfaceVariant,
+                    spacing: 0.24,
+                    height: 16,
+                  ),
+                ),
               ),
             ],
           ),
@@ -305,15 +352,26 @@ class _ChecklistSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        Expanded(
-                          child: Text(title,
-                              style: AppText.jakarta(16, height: 22, spacing: -0.08)),
-                        ),
-                        Icon(trailing, size: 18, color: AppColors.primary),
-                      ]),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: AppText.jakarta(
+                                16,
+                                height: 22,
+                                spacing: -0.08,
+                              ),
+                            ),
+                          ),
+                          Icon(trailing, size: 18, color: AppColors.primary),
+                        ],
+                      ),
                       const SizedBox(height: 2),
-                      Text(desc, style: AppText.inter(12, height: 18, spacing: 0.12)),
+                      Text(
+                        desc,
+                        style: AppText.inter(12, height: 18, spacing: 0.12),
+                      ),
                     ],
                   ),
                 ),

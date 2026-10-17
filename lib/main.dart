@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import 'screens/welcome_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
+  // Font sudah ada di assets/google_fonts, jangan download dari internet.
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const FloraPulseApp());
 }
 
@@ -16,7 +19,7 @@ class FloraPulseApp extends StatelessWidget {
       title: 'Florapulse',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const WelcomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
